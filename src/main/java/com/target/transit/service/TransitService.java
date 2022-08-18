@@ -82,10 +82,9 @@ public class TransitService {
 				});
 		List<Route> routeList = response.getBody();
 		if (routeList != null && !routeList.isEmpty())
-			route = routeList.stream().filter(e -> e.getRouteLabel().toLowerCase().contains(inputRoute.toLowerCase()))
-					.findFirst().orElse(null);
-		else
-			throw new RouteNotFoundException("Route " + inputRoute + " not found.");
+			route = routeList.stream().filter(e -> e.getRouteLabel().trim().toLowerCase().contains(inputRoute.trim().toLowerCase()))
+					.findFirst().orElseThrow(() -> new RouteNotFoundException("Route " + inputRoute + " not found."));
+
 		return route;
 
 	}
@@ -99,11 +98,9 @@ public class TransitService {
 		if (directionList != null && !directionList.isEmpty())
 			direction = directionList.stream()
 					.filter(e -> e.getDirectionName()
-							.equalsIgnoreCase(TransitDirection.valueOf(inputDirection.toUpperCase()).getValue()))
-					.findFirst().orElse(null);
-		else
-			throw new DirectionNotFoundException(
-					" Direction " + inputDirection + " for route " + routeId + " not found");
+							.equalsIgnoreCase(TransitDirection.valueOf(inputDirection.trim().toUpperCase()).getValue()))
+					.findFirst().orElseThrow(() -> new DirectionNotFoundException(
+							" Direction " + inputDirection + " for route " + routeId + " not found"));
 		return direction;
 
 	}
@@ -117,11 +114,10 @@ public class TransitService {
 		List<Place> placeList = response.getBody();
 		if (placeList != null && !placeList.isEmpty())
 			place = placeList.stream()
-					.filter(e -> e.getDescription().toLowerCase().contains(inputStopName.toLowerCase())).findFirst()
-					.orElse(null);
-		else
-			throw new PlaceNotFoundException(" Place with stop " + inputStopName + " route " + routeId + " directionId "
-					+ directionId + " directionId");
+					.filter(e -> e.getDescription().trim().toLowerCase().contains(inputStopName.trim().toLowerCase())).findFirst()
+					.orElseThrow(() -> new PlaceNotFoundException("Place code for " + inputStopName + " route "
+							+ routeId + " directionId " + directionId + " not found"));
+
 		return place;
 
 	}

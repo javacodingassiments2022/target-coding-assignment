@@ -64,7 +64,7 @@ public class TransitServiceTest {
 		when(transitConfig.getRouteApiUrl()).thenReturn("Mock_RouteApiUrl");
 		when(restTemplate.exchange(transitConfig.getRouteApiUrl(), HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<Route>>() {
-				})).thenReturn(new ResponseEntity(getEmptyRouteList(), HttpStatus.OK));
+				})).thenReturn(new ResponseEntity(getRouteList(), HttpStatus.OK));
 		assertThrows(RouteNotFoundException.class, () -> transitService.getRoute("METRO Black Line"));
 	}
 
@@ -83,7 +83,7 @@ public class TransitServiceTest {
 		when(transitConfig.getDirectionApiUrl()).thenReturn("Mock_DirectionApiUrl");
 		when(restTemplate.exchange(transitConfig.getDirectionApiUrl() + 123456789, HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<Direction>>() {
-				})).thenReturn(new ResponseEntity(getEmptyDirectionList(), HttpStatus.OK));
+				})).thenReturn(new ResponseEntity(getDirectionList(), HttpStatus.OK));
 		assertThrows(DirectionNotFoundException.class, () -> transitService.getDirection("West", "123456789"));
 	}
 
@@ -108,7 +108,7 @@ public class TransitServiceTest {
 				transitConfig.getPlaceApiUrl() + getRouteList().get(0).getRouteId() + "/"
 						+ getDirectionList().get(0).getDirectionId(),
 				HttpMethod.GET, null, new ParameterizedTypeReference<List<Place>>() {
-				})).thenReturn(new ResponseEntity(getEmptyPlaceList(), HttpStatus.OK));
+				})).thenReturn(new ResponseEntity(getPlaceList(), HttpStatus.OK));
 		assertThrows(PlaceNotFoundException.class,
 				() -> transitService.getPlaceDetails("Invalid Place Description", getRouteList().get(0).getRouteId(),
 						getDirectionList().get(0).getDirectionId()),
@@ -150,18 +150,6 @@ public class TransitServiceTest {
 		return routeList;
 
 	}
-	
-	private List<Route> getEmptyRouteList() {
-		List<Route> routeList = new ArrayList<Route>();
-		return routeList;
-
-	}
-	
-	private List<Route> getEmptyPlaceList() {
-		List<Route> placeList = new ArrayList<Route>();
-		return placeList;
-
-	}
 
 	private List<Direction> getDirectionList() {
 		List<Direction> directionList = new ArrayList<Direction>();
@@ -170,10 +158,5 @@ public class TransitServiceTest {
 		return directionList;
 	}
 	
-	
-	private List<Direction> getEmptyDirectionList() {
-		List<Direction> directionList = new ArrayList<Direction>();
-		return directionList;
-	}
 
 }
