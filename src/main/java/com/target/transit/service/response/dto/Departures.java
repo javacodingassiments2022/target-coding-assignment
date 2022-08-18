@@ -13,4 +13,6 @@ public class Departures {
 	private boolean actual;
 	@JsonProperty("departure_text")
 	private String departureText;
+	@JsonProperty("departure_time")
+	private int departureTime;
 }

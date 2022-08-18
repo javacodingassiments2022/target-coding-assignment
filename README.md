@@ -13,10 +13,3 @@ To build the project you will need
  parami is the substring of the bus route name
  param2 is the substring of the bus stop name 
  param2 is the direction north, east, south west
- 
- 
-java -jar target/transit-0.0.1-SNAPSHOT.jar "Green Line" "Target Field Station" "East"
-
-Prospect Park Station" - Doesnt return anything 	
-
-"METRO Blue" "Snelling St" "North"
