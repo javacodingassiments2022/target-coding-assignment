@@ -13,3 +13,5 @@ To build the project you will need
  parami is the substring of the bus route name
  param2 is the substring of the bus stop name 
  param2 is the direction north, east, south west
+ 
+ <img width="704" alt="Screen Shot 2022-08-18 at 12 35 48 AM" src="https://user-images.githubusercontent.com/111195821/185294692-9e4c8957-82e5-4d02-b345-1e03bd82c041.png">
