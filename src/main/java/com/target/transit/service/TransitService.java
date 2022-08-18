@@ -53,25 +53,27 @@ public class TransitService {
 			logger.info(departure.getDepartureText());
 
 		} catch (RouteNotFoundException e) {
-			logger.debug(e.getMessage());
+			logger.info(e.getMessage());
 		} catch (DirectionNotFoundException e) {
-			logger.debug(e.getMessage());
+			logger.info(e.getMessage());
 		} catch (PlaceNotFoundException e) {
-			logger.debug(e.getMessage());
+			logger.info(e.getMessage());
 		} catch (DeparturesNotFoundException e) {
-			logger.debug(e.getMessage());
+			logger.info(e.getMessage());
 		}
 
 	}
 
 	Route getRoute(String inputRoute) throws RouteNotFoundException {
-
+		
+		Route route =null;
 		ResponseEntity<List<Route>> response = restTemplate.exchange(transitConfig.getRouteApiUrl(), HttpMethod.GET,
 				null, new ParameterizedTypeReference<List<Route>>() {
 				});
-		List<Route> routeList = response.getBody();
-		Route route = routeList.stream().filter(e -> e.getRouteLabel().toLowerCase().contains(inputRoute.toLowerCase()))
-				.findFirst().orElse(null);
+			List<Route> routeList = response.getBody();
+			if(routeList!=null && !routeList.isEmpty())
+			 route = routeList.stream().filter(e -> e.getRouteLabel().toLowerCase().contains(inputRoute.toLowerCase()))
+					.findFirst().orElse(null);
 		if (route == null)
 			throw new RouteNotFoundException("Route " + inputRoute + " not found.");
 		return route;
@@ -82,8 +84,10 @@ public class TransitService {
 		ResponseEntity<List<Direction>> response = restTemplate.exchange(transitConfig.getDirectionApiUrl() + routeId,
 				HttpMethod.GET, null, new ParameterizedTypeReference<List<Direction>>() {
 				});
+		Direction direction =null;
 		List<Direction> directionList = response.getBody();
-		Direction direction = directionList.stream()
+		if(directionList!=null && !directionList.isEmpty())
+		direction = directionList.stream()
 				.filter(e -> e.getDirectionName()
 						.equalsIgnoreCase(TransitDirection.valueOf(inputDirection.toUpperCase()).getValue()))
 				.findFirst().orElse(null);
@@ -95,14 +99,14 @@ public class TransitService {
 	}
 
 	Place getPlaceDetails(String inputStopName, String routeId, int directionId) throws PlaceNotFoundException {
-
+		Place place = null;
 		ResponseEntity<List<Place>> response = restTemplate.exchange(
 				transitConfig.getPlaceApiUrl() + routeId + "/" + directionId, HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<Place>>() {
 				});
 		List<Place> placeList = response.getBody();
-
-		Place place = placeList.stream()
+		if(placeList!=null && !placeList.isEmpty())
+		place = placeList.stream()
 				.filter(e -> e.getDescription().toLowerCase().contains(inputStopName.toLowerCase())).findFirst()
 				.orElse(null);
 		if (place == null)
@@ -117,9 +121,11 @@ public class TransitService {
 		ResponseEntity<TransitResponse> response = restTemplate.exchange(
 				transitConfig.getNextTripApiUrl() + routeId + "/" + directionId + "/" + placeCode, HttpMethod.GET, null,
 				TransitResponse.class);
-		List<Departures> departureList = response.getBody().getDepartures();
-		Departures departure = departureList.stream().findFirst().orElse(null);
-
+		Departures departure=null;
+		if(response!=null) {
+			List<Departures> departureList = response.getBody().getDepartures();	
+			departure = departureList.stream().findFirst().orElse(null);
+		}
 		if (departure == null)
 			throw new DeparturesNotFoundException(" No Departures found for reouteId " + routeId + "  direction Id "
 					+ directionId + " placeCode " + placeCode);

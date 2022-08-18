@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+import com.target.transit.handler.RestTemplateCustomErrorHandler;
+
 @Configuration
 public class RestConfig {
 	
