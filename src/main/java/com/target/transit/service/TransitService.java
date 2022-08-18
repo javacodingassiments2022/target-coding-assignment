@@ -30,10 +30,10 @@ public class TransitService {
 	private final static Logger logger = LoggerFactory.getLogger(TransitService.class);
 
 	@Autowired
-	private TransitConfig transitConfig;
+	TransitConfig transitConfig;
 
 	@Autowired
-	private RestTemplate restTemplate;
+	RestTemplate restTemplate;
 
 	public void showNextBusAvailibility(TransitInfo transitInfo) {
 
