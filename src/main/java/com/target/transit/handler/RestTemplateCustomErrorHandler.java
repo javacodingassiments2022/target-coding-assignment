@@ -17,13 +17,13 @@ public class RestTemplateCustomErrorHandler implements ResponseErrorHandler {
 	@Override
 	public boolean hasError(ClientHttpResponse httpResponse) throws IOException {
 
-		logger.info("Status code" + httpResponse.getStatusCode());
-		
 		if(!httpResponse.getStatusCode().is2xxSuccessful()) {
 		
 			String body = new BufferedReader(new InputStreamReader(httpResponse.getBody())).lines()
 					.collect(Collectors.joining("\n"));
 			logger.error("Response from API {} " , body);
+			
+			return true;
 		}
 		
 		return false;
@@ -32,8 +32,7 @@ public class RestTemplateCustomErrorHandler implements ResponseErrorHandler {
 
 	@Override
 	public void handleError(ClientHttpResponse response) throws IOException {
-	 
-		//T
+	  //TODO for now, not doing any custom error handling 
 
 	}
 
