@@ -12,9 +12,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.target.transit.config.TransitConfig;
-import com.target.transit.constants.TransitApplicationConstants;
 import com.target.transit.constants.TransitDirection;
 import com.target.transit.dto.TransitInfo;
+import com.target.transit.exception.DeparturesNotFoundException;
+import com.target.transit.exception.DirectionNotFoundException;
+import com.target.transit.exception.PlaceNotFoundException;
+import com.target.transit.exception.RouteNotFoundException;
 import com.target.transit.service.response.dto.Departures;
 import com.target.transit.service.response.dto.Direction;
 import com.target.transit.service.response.dto.Place;
@@ -35,42 +38,33 @@ public class TransitService {
 	public void showNextBusAvailibility(TransitInfo transitInfo) {
 
 		// Step 1 - getRoute info based on Input.
-		Route route = getRoute(transitInfo.getRouteInfo());
-		if (route != null) {
-			// Step 2 - get direction based on the route.
-			Direction direction = getDirection(transitInfo.getTransitDirection(), route.getRouteId());
-			if (direction != null) {
-				// step 3 - get place code based on routeId and directionId.
-				Place place = getPlaceDetails(transitInfo.getStopName(), route.getRouteId(),
-						direction.getDirectionId());
+		Route route = null;
+		Direction direction = null;
+		Place place = null;
+		Departures departure = null;
 
-				if (place != null) {
-					logger.debug("Invoking next trip final api with paramters route = " + route.getRouteId()
-							+ " direction = " + direction.getDirectionId() + " place code = " + place.getPlaceCode());
-					Departures departure = getFinalTransitResponse(route.getRouteId(), direction.getDirectionId(),
-							place.getPlaceCode());
+		try {
+			route = getRoute(transitInfo.getRouteInfo());
+			direction = getDirection(transitInfo.getTransitDirection(), route.getRouteId());
+			place = getPlaceDetails(transitInfo.getStopName(), route.getRouteId(), direction.getDirectionId());
+			logger.debug("Invoking next trip final api with paramters route = " + route.getRouteId() + " direction = "
+					+ direction.getDirectionId() + " place code = " + place.getPlaceCode());
+			departure = getFinalTransitResponse(route.getRouteId(), direction.getDirectionId(), place.getPlaceCode());
+			logger.info(departure.getDepartureText());
 
-					if (departure != null) {
-						// If not null , display the minutes otherwise dont do anything
-						logger.info(departure.getDepartureText()+" " + TransitApplicationConstants.MINUTES);
-					}
-
-				} else {
-					logger.debug("No place code found for " + route.getRouteId() + " and direction "
-							+ direction.getDirectionId());
-				}
-
-			} else {
-				logger.debug("No transit directions found for route id " + route.getRouteId());
-			}
-
-		} else {
-			logger.debug("Route not present, please enter valid route name");
+		} catch (RouteNotFoundException e) {
+			logger.debug(e.getMessage());
+		} catch (DirectionNotFoundException e) {
+			logger.debug(e.getMessage());
+		} catch (PlaceNotFoundException e) {
+			logger.debug(e.getMessage());
+		} catch (DeparturesNotFoundException e) {
+			logger.debug(e.getMessage());
 		}
 
 	}
 
-	Route getRoute(String inputRoute) {
+	Route getRoute(String inputRoute) throws RouteNotFoundException {
 
 		ResponseEntity<List<Route>> response = restTemplate.exchange(transitConfig.getRouteApiUrl(), HttpMethod.GET,
 				null, new ParameterizedTypeReference<List<Route>>() {
@@ -78,12 +72,13 @@ public class TransitService {
 		List<Route> routeList = response.getBody();
 		Route route = routeList.stream().filter(e -> e.getRouteLabel().toLowerCase().contains(inputRoute.toLowerCase()))
 				.findFirst().orElse(null);
-
+		if (route == null)
+			throw new RouteNotFoundException("Route " + inputRoute + " not found.");
 		return route;
 
 	}
 
-	Direction getDirection(String inputDirection, String routeId) {
+	Direction getDirection(String inputDirection, String routeId) throws DirectionNotFoundException {
 		ResponseEntity<List<Direction>> response = restTemplate.exchange(transitConfig.getDirectionApiUrl() + routeId,
 				HttpMethod.GET, null, new ParameterizedTypeReference<List<Direction>>() {
 				});
@@ -92,11 +87,14 @@ public class TransitService {
 				.filter(e -> e.getDirectionName()
 						.equalsIgnoreCase(TransitDirection.valueOf(inputDirection.toUpperCase()).getValue()))
 				.findFirst().orElse(null);
+		if (direction == null)
+			throw new DirectionNotFoundException(
+					" Direction " + inputDirection + " for route " + routeId + " not found");
 		return direction;
 
 	}
 
-	Place getPlaceDetails(String inputStopName, String routeId, int directionId) {
+	Place getPlaceDetails(String inputStopName, String routeId, int directionId) throws PlaceNotFoundException {
 
 		ResponseEntity<List<Place>> response = restTemplate.exchange(
 				transitConfig.getPlaceApiUrl() + routeId + "/" + directionId, HttpMethod.GET, null,
@@ -107,17 +105,26 @@ public class TransitService {
 		Place place = placeList.stream()
 				.filter(e -> e.getDescription().toLowerCase().contains(inputStopName.toLowerCase())).findFirst()
 				.orElse(null);
+		if (place == null)
+			throw new PlaceNotFoundException(" Place with stop " + inputStopName + " route " + routeId + " directionId "
+					+ directionId + " directionId");
 		return place;
 
 	}
 
-	Departures getFinalTransitResponse(String routeId, int directionId, String placeCode) {
+	Departures getFinalTransitResponse(String routeId, int directionId, String placeCode)
+			throws DeparturesNotFoundException {
 		ResponseEntity<TransitResponse> response = restTemplate.exchange(
 				transitConfig.getNextTripApiUrl() + routeId + "/" + directionId + "/" + placeCode, HttpMethod.GET, null,
 				TransitResponse.class);
 		List<Departures> departureList = response.getBody().getDepartures();
-		Departures depature = departureList.stream().findFirst().orElse(null);
-		return depature;
+		Departures departure = departureList.stream().findFirst().orElse(null);
+
+		if (departure == null)
+			throw new DeparturesNotFoundException(" No Departures found for reouteId " + routeId + "  direction Id "
+					+ directionId + " placeCode " + placeCode);
+
+		return departure;
 
 	}
 

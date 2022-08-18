@@ -9,14 +9,13 @@ import org.springframework.stereotype.Component;
 import com.target.transit.constants.TransitApplicationConstants;
 import com.target.transit.constants.TransitDirection;
 
-
 @Component
 public class TransitValidator {
-	
+
 	private final static Logger logger = LoggerFactory.getLogger(TransitValidator.class);
 
 	public boolean isInputValid(String[] args){
-		
+			
 		if (args.length != 3) {
 			logger.error(TransitApplicationConstants.INVALID_ARGS_LENGTH);
 			return false;
@@ -41,5 +40,4 @@ public class TransitValidator {
 		return true;
 		
 	}
-	
 }
